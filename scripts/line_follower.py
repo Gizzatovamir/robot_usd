@@ -117,6 +117,7 @@ class ImageSubscriber(Node):
         rows,cols = img.shape[:2]
         newcameramatrix, _ = cv2.getOptimalNewCameraMatrix(self.k, self.d, (rows, cols), 1, (rows, cols))
         undistort = cv2.undistort(img, self.k, self.d, None, newcameramatrix)
+        gray = cv2.cvtColor(undistort, cv2.COLOR_RGB2GRAY)
 
 
         # 1. Convert to HLS color space to extract lightness channel
@@ -167,15 +168,15 @@ class ImageSubscriber(Node):
 
             # Chase the ball
             #print(abs(cols - cx), cx, cols)
-            if abs(cols/2 - cx) > 20:
-                msg.linear.x = 0.05
+            if abs(cols/2 - cx) > 15:
+                msg.linear.x = 0.25
                 if cols/2 > cx:
-                    msg.angular.z = 0.15
+                    msg.angular.z = 0.25
                 else:
-                    msg.angular.z = -0.15
+                    msg.angular.z = -0.25
 
             else:
-                msg.linear.x = 0.1
+                msg.linear.x = 0.5
                 msg.angular.z = 0.0
 
         else:
@@ -184,7 +185,7 @@ class ImageSubscriber(Node):
 
         # Publish cmd_vel
         self.publisher.publish(msg)
-        self.image_repub.publish(self.bridge.cv2_to_imgmsg(undistort,encoding='rgb8'))
+        self.image_repub.publish(self.bridge.cv2_to_imgmsg(crosshairMask,encoding='rgb8'))
 
         # Return processed frames
         return L_masked, contourMask, crosshairMask
